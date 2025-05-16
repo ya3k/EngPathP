@@ -1,4 +1,5 @@
 ﻿using Domain.Common;
+using Domain.Identity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +15,7 @@ namespace Domain.Entity
         public Guid UserId { get; set; }
         public bool IsShared { get; set; } = false;
 
-        public User User { get; set; } = null!;
+        public ApplicationUser User { get; set; } = null!;
         public ICollection<LearningUnit> Units { get; set; } = new List<LearningUnit>();
     }
 }

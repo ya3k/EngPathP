@@ -1,4 +1,5 @@
 ﻿using Domain.Common;
+using Domain.Identity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +16,7 @@ namespace Domain.Entity
         public int ProgressPercent { get; set; }
         public DateTime LastReviewedAt { get; set; }
 
-        public User User { get; set; } = null!;
+        public ApplicationUser User { get; set; } = null!;
         public LearningUnit LearningUnit { get; set; } = null!;
     }
 }

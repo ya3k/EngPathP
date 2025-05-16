@@ -1,4 +1,5 @@
 ﻿using Domain.Common;
+using Domain.Identity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +19,7 @@ namespace Domain.Entity
         public int EaseFactor { get; set; }
         public int RepetitionCount { get; set; }
 
-        public User User { get; set; } = null!;
+        public ApplicationUser User { get; set; } = null!;
         public VocabularyItem VocabularyItem { get; set; } = null!;
     }
 }
