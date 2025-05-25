@@ -17,6 +17,7 @@ namespace Api
             //add infrastructure services
             builder.Services.AddInfrastructureServices(builder.Configuration);
 
+
         
             var app = builder.Build();
 
@@ -24,14 +25,13 @@ namespace Api
 
             if (app.Environment.IsDevelopment())
             {
-                app.UseSwagger();         // <-- T?o file JSON mô t? API
-                app.UseSwaggerUI();      // <-- Giao di?n UI hi?n th? Swagger
+                app.UseSwagger();        
+                app.UseSwaggerUI();    
             }
 
             app.UseHttpsRedirection();
-
+            app.UseAuthentication();
             app.UseAuthorization();
-
 
             app.MapControllers();
 

@@ -1,6 +1,7 @@
 ﻿using Application.DTOs;
 using Application.ServiceContracts;
 using Domain.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -14,26 +15,34 @@ namespace Infrastructure.Services
     public class JwtService : IJwtService
     {
         private readonly IConfiguration _configuration;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public JwtService(IConfiguration configuration)
+        public JwtService(IConfiguration configuration, UserManager<ApplicationUser> userManager )
         {
             _configuration = configuration;
+            _userManager = userManager;
         }
 
         public async Task<AuthenticationResponse> CreateJwtToken(ApplicationUser user)
         {
             return await Task.Run(() =>
             {
+                var roles = _userManager.GetRolesAsync(user).Result;
+
                 DateTime expiration = DateTime.Now.AddMinutes(Convert.ToDouble(_configuration["Jwt:EXPIRATION_MINUTES"]));
 
-                Claim[] claims = new Claim[] {
+                var claims = new List<Claim> {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(JwtRegisteredClaimNames.Iat, DateTime.UtcNow.ToString()),
                 new Claim(ClaimTypes.NameIdentifier, user.Email),
                 new Claim(ClaimTypes.Name, user.PersonName),
                 new Claim(ClaimTypes.Email, user.Email)
+
+                // Add roles as claims
+               
             };
+                claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
                 SymmetricSecurityKey securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
                 SigningCredentials signingCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
@@ -51,9 +60,10 @@ namespace Infrastructure.Services
 
                 return new AuthenticationResponse()
                 {
-                    Token = token,
+                    AccessToken = token,
                     Email = user.Email,
                     PersonName = user.PersonName,
+                    Roles = roles.ToList(),
                     Expiration = expiration,
                     RefreshToken = GenerateRefreshToken(),
                     RefreshTokenExpirationDateTime = DateTime.Now.AddMinutes(Convert.ToInt32(_configuration["RefreshToken:EXPIRATION_MINUTES"]))
