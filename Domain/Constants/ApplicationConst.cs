@@ -11,6 +11,7 @@ namespace Domain.Constants
         public const string AuthenticatedUser = "AuthenticatedUser";
         public const string AdminPermission = "AdminPermission";
         public const string UserPermission = "UserPermission";
-     
+        public const string VipPermission = "VipPermission";
+
     }
 }

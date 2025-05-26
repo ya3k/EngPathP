@@ -60,5 +60,41 @@ namespace Api.Controllers
             }
             return Unauthorized("Invalid token");
         }
+
+        [HttpPost("validate-token")]
+        public async Task<IActionResult> ValidateToken([FromBody] string token)
+        {
+            if (string.IsNullOrEmpty(token))
+            {
+                return BadRequest("Token is required");
+            }
+            var isValid = await _authService.ValidateToken(token);
+            if (isValid)
+            {
+                return Ok("Token is valid");
+            }
+            return Unauthorized("Invalid token");
+        }
+
+        //logout
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            var authHeader = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+            if (string.IsNullOrWhiteSpace(authHeader) || !authHeader.StartsWith("Bearer "))
+            {
+                return Unauthorized(new { error = "Missing or invalid Authorization header." });
+            }
+
+            var token = authHeader.Substring("Bearer ".Length).Trim();
+
+            var result = await _authService.RevokeToken(token);
+            if (!result)
+                return Unauthorized(new { error = "Logout failed or token invalid." });
+
+            return Ok(new { message = "Successfully logged out." });
+        }
+
+
     }
 }

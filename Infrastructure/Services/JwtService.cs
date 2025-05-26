@@ -17,7 +17,7 @@ namespace Infrastructure.Services
         private readonly IConfiguration _configuration;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public JwtService(IConfiguration configuration, UserManager<ApplicationUser> userManager )
+        public JwtService(IConfiguration configuration, UserManager<ApplicationUser> userManager)
         {
             _configuration = configuration;
             _userManager = userManager;
@@ -25,16 +25,15 @@ namespace Infrastructure.Services
 
         public async Task<AuthenticationResponse> CreateJwtToken(ApplicationUser user)
         {
-            return await Task.Run(() =>
-            {
-                var roles = _userManager.GetRolesAsync(user).Result;
 
-                DateTime expiration = DateTime.Now.AddMinutes(Convert.ToDouble(_configuration["Jwt:EXPIRATION_MINUTES"]));
+            var roles = _userManager.GetRolesAsync(user).Result;
 
-                var claims = new List<Claim> {
+            DateTime expiration = DateTime.Now.AddMinutes(Convert.ToDouble(_configuration["Jwt:EXPIRATION_MINUTES"]));
+
+            var claims = new List<Claim> {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(JwtRegisteredClaimNames.Iat, DateTime.UtcNow.ToString()),
+                new Claim(JwtRegisteredClaimNames.Iat, ((DateTimeOffset)DateTime.Now).ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64),
                 new Claim(ClaimTypes.NameIdentifier, user.Email),
                 new Claim(ClaimTypes.Name, user.PersonName),
                 new Claim(ClaimTypes.Email, user.Email)
@@ -42,33 +41,33 @@ namespace Infrastructure.Services
                 // Add roles as claims
                
             };
-                claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
+            claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
-                SymmetricSecurityKey securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
-                SigningCredentials signingCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+            SymmetricSecurityKey securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+            SigningCredentials signingCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
-                JwtSecurityToken tokenGenerator = new JwtSecurityToken(
-                    _configuration["Jwt:Issuer"],
-                    _configuration["Jwt:Audience"],
-                    claims,
-                    expires: expiration,
-                    signingCredentials: signingCredentials
-                );
+            JwtSecurityToken tokenGenerator = new JwtSecurityToken(
+                _configuration["Jwt:Issuer"],
+                _configuration["Jwt:Audience"],
+                claims,
+                expires: expiration,
+                signingCredentials: signingCredentials
+            );
 
-                JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
-                string token = tokenHandler.WriteToken(tokenGenerator);
+            JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+            string token = tokenHandler.WriteToken(tokenGenerator);
 
-                return new AuthenticationResponse()
-                {
-                    AccessToken = token,
-                    Email = user.Email,
-                    PersonName = user.PersonName,
-                    Roles = roles.ToList(),
-                    Expiration = expiration,
-                    RefreshToken = GenerateRefreshToken(),
-                    RefreshTokenExpirationDateTime = DateTime.Now.AddMinutes(Convert.ToInt32(_configuration["RefreshToken:EXPIRATION_MINUTES"]))
-                };
-            });
+            return new AuthenticationResponse()
+            {
+                AccessToken = token,
+                Email = user.Email,
+                PersonName = user.PersonName,
+                Roles = roles.ToList(),
+                Expiration = expiration,
+                RefreshToken = GenerateRefreshToken(),
+                RefreshTokenExpirationDateTime = DateTime.Now.AddMinutes(Convert.ToInt32(_configuration["RefreshToken:EXPIRATION_MINUTES"]))
+            };
+
         }
 
         public async Task<ClaimsPrincipal?> GetPrincipalFromJwtToken(string? token)

@@ -101,11 +101,33 @@ namespace Infrastructure.Services
 
 
 
-        public Task<bool> ValidateToken(string token)
+        public async Task<bool> ValidateToken(string token)
         {
-            throw new NotImplementedException();
+            var principal = await _jwtService.GetPrincipalFromJwtToken(token);
+            return principal != null;
         }
 
-     
+        public async Task<bool> RevokeToken(string token)
+        {
+            var principal = await _jwtService.GetPrincipalFromJwtToken(token);
+
+            if (principal == null)
+                return false;
+
+            string? email = principal.FindFirstValue(ClaimTypes.Email);
+            if (string.IsNullOrEmpty(email))
+                return false;
+
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+                return false;
+
+            user.RefreshToken = null;
+            user.RefreshTokenExpirationDateTime = DateTime.MinValue; // Use DateTime.MinValue instead of null  
+            await _userManager.UpdateAsync(user);
+
+            return true;
+        }
+
     }
 }

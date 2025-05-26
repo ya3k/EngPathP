@@ -13,5 +13,8 @@ namespace Application.ServiceContracts.Auth
         Task<AuthenticationResponse> LoginAsync(LoginDTO loginDTO);
         Task<AuthenticationResponse> RefreshTokenAsync(TokenModel tokenModel);
         Task<bool> ValidateToken(string token);
+        Task<bool> RevokeToken(string token);
+    
+
     }
 }

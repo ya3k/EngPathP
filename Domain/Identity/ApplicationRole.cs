@@ -10,7 +10,9 @@ namespace Domain.Identity
     public class ApplicationRole: IdentityRole<Guid>
     {
         public const string ADMIN = "Admin";
-        public const string USER = "User";
+        public const string USER = "User"; 
+        public const string VIPMEMBER = "VipMember";
+
 
     }
 }
