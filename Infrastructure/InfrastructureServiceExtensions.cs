@@ -2,7 +2,10 @@
 using Application.ServiceContracts.Auth;
 using Domain.Constants;
 using Domain.Identity;
+using Domain.Interfaces;
+using Domain.Interfaces.Repositories;
 using Infrastructure.Data;
+using Infrastructure.Repositories;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
@@ -47,7 +50,9 @@ namespace Infrastructure
 
             services.AddTransient<IJwtService, JwtService>();
             services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             // authorization policies
 
