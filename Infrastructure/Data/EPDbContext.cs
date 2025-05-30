@@ -1,5 +1,5 @@
-﻿using Domain.Entity;
-using Domain.Identity;
+﻿using Domain.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -36,6 +36,27 @@ namespace Infrastructure.Data
                     NormalizedName = ApplicationRole.USER.ToUpper()
                 }
             );
+            var hasher = new PasswordHasher<ApplicationUser>();
+
+            // Seed default admin user
+            modelBuilder.Entity<ApplicationUser>().HasData(
+               new ApplicationUser
+               {
+                   Id = Guid.Parse("e4eaaaf2-d142-11e1-b3e4-080027620cdd"), 
+                   UserName = "admin",
+                   NormalizedUserName = "ADMIN",
+                   Email = "van23@example.com",
+                   NormalizedEmail = "VAN23@EXAMPLE.COM",
+                   EmailConfirmed = true,
+                   PasswordHash = hasher.HashPassword(null, "23012003aA@"),
+                   SecurityStamp = Guid.NewGuid().ToString("D"),
+                   ConcurrencyStamp = Guid.NewGuid().ToString("D"),
+                   IsActive = true,
+                   CreatedAt = DateTime.UtcNow,
+                   UpdatedAt = DateTime.UtcNow
+               }
+            );
+           
         }
 
         protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)

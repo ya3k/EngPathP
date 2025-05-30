@@ -29,6 +29,7 @@
 
   <ItemGroup>
     <Folder Include="Common\" />
+    <Folder Include="DataModelConfig\" />
   </ItemGroup>
 
 </Project>

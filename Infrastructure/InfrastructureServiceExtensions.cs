@@ -77,6 +77,22 @@ namespace Infrastructure
                 // Thêm xử lý lỗi ở đây
                 options.Events = new JwtBearerEvents
                 {
+                    OnMessageReceived = context =>
+                    {
+                        var endpoint = context.HttpContext.GetEndpoint();
+                        var authorizeMetadata = endpoint?.Metadata?.GetMetadata<Microsoft.AspNetCore.Authorization.IAuthorizeData>();
+
+                        if (authorizeMetadata == null)
+                        {
+                            context.NoResult();
+                            return Task.CompletedTask;
+                        }
+
+                        var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                        context.Token = token;
+                        return Task.CompletedTask;
+                    },
+
                     OnAuthenticationFailed = context =>
                     {
                         var logger = context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>()
@@ -84,14 +100,31 @@ namespace Infrastructure
 
                         logger.LogError(context.Exception, "Token authentication failed.");
 
-                        // Optional: trả lỗi tùy chỉnh
+                        var endpoint = context.HttpContext.GetEndpoint();
+                        var authorizeMetadata = endpoint?.Metadata?.GetMetadata<Microsoft.AspNetCore.Authorization.IAuthorizeData>();
+
+                        if (authorizeMetadata == null)
+                        {
+                            context.NoResult();
+                            return Task.CompletedTask;
+                        }
+
                         context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                         context.Response.ContentType = "application/json";
                         return context.Response.WriteAsync("{\"error\": \"Invalid or expired token\"}");
                     },
+
                     OnChallenge = context =>
                     {
-                        // Chặn lỗi mặc định nếu cần
+                        var endpoint = context.HttpContext.GetEndpoint();
+                        var authorizeMetadata = endpoint?.Metadata?.GetMetadata<Microsoft.AspNetCore.Authorization.IAuthorizeData>();
+
+                        if (authorizeMetadata == null)
+                        {
+                            // Không có [Authorize] ➜ không làm gì cả
+                            return Task.CompletedTask;
+                        }
+
                         if (!context.Handled && !context.Response.HasStarted)
                         {
                             context.HandleResponse();

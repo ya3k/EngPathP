@@ -5,11 +5,14 @@ namespace Domain.Identity
     public class ApplicationUser : IdentityUser<Guid>
     {
         public string? PersonName { get; set; } = string.Empty;
-        public string? RefreshToken { get; set; }
         public bool IsActive { get; set; } = true;
-        public DateTime RefreshTokenExpirationDateTime { get; set; }
+        public int DailyGoal { get; set; } = 30; // Phút học mỗi ngày 
+        public int StreakDays { get; set; } // Số ngày học liên tiếp
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
+        public ICollection<UserLearningPath> LearningPaths { get; set; }
+        public ICollection<UserProgress> Progresses { get; set; }
+        public ICollection<UserVocabulary> Vocabularies { get; set; }
     }
 }

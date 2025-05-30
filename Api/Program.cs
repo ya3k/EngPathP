@@ -12,6 +12,10 @@ namespace Api
             // Add services to the container.
 
             builder.Services.AddControllers();
+            builder.Services.Configure<RouteOptions>(options =>
+            {
+                options.LowercaseUrls = true;
+            });
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             //add infrastructure services
@@ -28,7 +32,7 @@ namespace Api
                 app.UseSwagger();        
                 app.UseSwaggerUI();    
             }
-
+            
             app.UseHttpsRedirection();
             app.UseAuthentication();
             app.UseAuthorization();

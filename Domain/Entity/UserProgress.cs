@@ -1,22 +1,20 @@
 ﻿using Domain.Common;
-using Domain.Identity;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Domain.Entity;
 
-namespace Domain.Entity
+namespace Domain.Identity
 {
     public class UserProgress : AuditEntity
     {
+        public DateTime Date { get; set; } = DateTime.UtcNow;
+        public int MinutesStudied { get; set; }
+
         public Guid UserId { get; set; }
-        public Guid LearningUnitId { get; set; }
+        public ApplicationUser User { get; set; }
 
-        public int ProgressPercent { get; set; }
-        public DateTime LastReviewedAt { get; set; }
+        public Guid? LessonId { get; set; }
+        public Lesson Lesson { get; set; }
 
-        public ApplicationUser User { get; set; } = null!;
-        public LearningUnit LearningUnit { get; set; } = null!;
+        public Guid? ExerciseId { get; set; }
+        public Exercise Exercise { get; set; }
     }
 }

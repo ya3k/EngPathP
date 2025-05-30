@@ -3,29 +3,27 @@ using Application.ServiceContracts;
 using Application.ServiceContracts.Auth;
 using Domain.Identity;
 using Microsoft.AspNetCore.Identity;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Infrastructure.Services
 {
     public class AuthService : IAuthService
     {
-
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IJwtService _jwtService;
+
+        private const string TOKEN_PROVIDER = "MyApp";
+        private const string REFRESH_TOKEN_NAME = "RefreshToken";
+        private const string REFRESH_TOKEN_EXP_NAME = "RefreshTokenExpiration";
 
         public AuthService(UserManager<ApplicationUser> userManager, IJwtService jwtService)
         {
             _userManager = userManager;
             _jwtService = jwtService;
         }
+
         public async Task<bool> RegisterAsync(RegisterDTO registerDTO)
         {
-
             var user = new ApplicationUser
             {
                 UserName = registerDTO.Email,
@@ -33,20 +31,18 @@ namespace Infrastructure.Services
                 PhoneNumber = registerDTO.PhoneNumber,
                 PersonName = registerDTO.PersonName,
                 IsActive = true,
-                CreatedAt = DateTime.Now,
-                UpdatedAt = DateTime.Now
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             };
 
             var result = await _userManager.CreateAsync(user, registerDTO.Password);
             if (result.Succeeded)
             {
-                // Assign default role to the user
-                 await _userManager.AddToRoleAsync(user, ApplicationRole.USER);
-
+                await _userManager.AddToRoleAsync(user, ApplicationRole.USER);
                 return true;
             }
-            return false;
 
+            return false;
         }
 
         public async Task<AuthenticationResponse> LoginAsync(LoginDTO loginDTO)
@@ -60,9 +56,8 @@ namespace Infrastructure.Services
 
             var tokens = await _jwtService.CreateJwtToken(user);
 
-            user.RefreshToken = tokens.RefreshToken;
-            user.RefreshTokenExpirationDateTime = tokens.RefreshTokenExpirationDateTime;
-            await _userManager.UpdateAsync(user);
+            await _userManager.SetAuthenticationTokenAsync(user, TOKEN_PROVIDER, REFRESH_TOKEN_NAME, tokens.RefreshToken);
+            await _userManager.SetAuthenticationTokenAsync(user, TOKEN_PROVIDER, REFRESH_TOKEN_EXP_NAME, tokens.RefreshTokenExpirationDateTime.ToString("O")); // ISO 8601
 
             return tokens;
         }
@@ -70,36 +65,35 @@ namespace Infrastructure.Services
         public async Task<AuthenticationResponse> RefreshTokenAsync(TokenModel tokenModel)
         {
             if (tokenModel == null)
-            {
                 throw new UnauthorizedAccessException("Invalid request.");
-            }
 
             var principal = await _jwtService.GetPrincipalFromJwtToken(tokenModel.Token);
 
             if (principal == null)
-            {
                 throw new UnauthorizedAccessException("Invalid jwt access token.");
-            }
 
-            string? email = principal.FindFirstValue(ClaimTypes.Email);
-
+            var email = principal.FindFirstValue(ClaimTypes.Email);
             var user = await _userManager.FindByEmailAsync(email);
-            if (user == null || user.RefreshToken != tokenModel.RefreshToken || user.RefreshTokenExpirationDateTime <= DateTime.Now)
-            {
+
+            if (user == null)
+                throw new UnauthorizedAccessException("User not found.");
+
+            var savedRefreshToken = await _userManager.GetAuthenticationTokenAsync(user, TOKEN_PROVIDER, REFRESH_TOKEN_NAME);
+            var savedExpString = await _userManager.GetAuthenticationTokenAsync(user, TOKEN_PROVIDER, REFRESH_TOKEN_EXP_NAME);
+
+            if (savedRefreshToken != tokenModel.RefreshToken)
                 throw new UnauthorizedAccessException("Invalid refresh token.");
-            }
 
-            var authenticationResponse = await _jwtService.CreateJwtToken(user);
+            if (!DateTime.TryParse(savedExpString, out var refreshExp) || refreshExp <= DateTime.UtcNow)
+                throw new UnauthorizedAccessException("Refresh token expired.");
 
-            user.RefreshToken = authenticationResponse.RefreshToken;
-            user.RefreshTokenExpirationDateTime = authenticationResponse.RefreshTokenExpirationDateTime;
-            await _userManager.UpdateAsync(user);
+            var newTokens = await _jwtService.CreateJwtToken(user);
 
-            return authenticationResponse;
+            await _userManager.SetAuthenticationTokenAsync(user, TOKEN_PROVIDER, REFRESH_TOKEN_NAME, newTokens.RefreshToken);
+            await _userManager.SetAuthenticationTokenAsync(user, TOKEN_PROVIDER, REFRESH_TOKEN_EXP_NAME, newTokens.RefreshTokenExpirationDateTime.ToString("O"));
 
+            return newTokens;
         }
-
-
 
         public async Task<bool> ValidateToken(string token)
         {
@@ -110,24 +104,18 @@ namespace Infrastructure.Services
         public async Task<bool> RevokeToken(string token)
         {
             var principal = await _jwtService.GetPrincipalFromJwtToken(token);
+            if (principal == null) return false;
 
-            if (principal == null)
-                return false;
-
-            string? email = principal.FindFirstValue(ClaimTypes.Email);
-            if (string.IsNullOrEmpty(email))
-                return false;
+            var email = principal.FindFirstValue(ClaimTypes.Email);
+            if (string.IsNullOrEmpty(email)) return false;
 
             var user = await _userManager.FindByEmailAsync(email);
-            if (user == null)
-                return false;
+            if (user == null) return false;
 
-            user.RefreshToken = null;
-            user.RefreshTokenExpirationDateTime = DateTime.MinValue; // Use DateTime.MinValue instead of null  
-            await _userManager.UpdateAsync(user);
+            await _userManager.RemoveAuthenticationTokenAsync(user, TOKEN_PROVIDER, REFRESH_TOKEN_NAME);
+            await _userManager.RemoveAuthenticationTokenAsync(user, TOKEN_PROVIDER, REFRESH_TOKEN_EXP_NAME);
 
             return true;
         }
-
     }
 }

@@ -116,12 +116,6 @@ namespace Infrastructure.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
 
-                    b.Property<string>("RefreshToken")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("RefreshTokenExpirationDateTime")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
 
@@ -146,6 +140,28 @@ namespace Infrastructure.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("e4eaaaf2-d142-11e1-b3e4-080027620cdd"),
+                            AccessFailedCount = 0,
+                            ConcurrencyStamp = "c5e0f441-9419-4b22-b559-f3e37d3dbefa",
+                            CreatedAt = new DateTime(2025, 5, 30, 16, 10, 20, 46, DateTimeKind.Utc).AddTicks(2993),
+                            Email = "van23@example.com",
+                            EmailConfirmed = true,
+                            IsActive = true,
+                            LockoutEnabled = false,
+                            NormalizedEmail = "VAN23@EXAMPLE.COM",
+                            NormalizedUserName = "ADMIN",
+                            PasswordHash = "AQAAAAIAAYagAAAAEHefn0auathzfDxFLmsBj0QFAxF68cL1guXEwOtmcIjPlx5Rxxb3rnYB56mIps06Rg==",
+                            PersonName = "",
+                            PhoneNumberConfirmed = false,
+                            SecurityStamp = "7361525c-4117-4af4-bb18-905eed0bd59d",
+                            TwoFactorEnabled = false,
+                            UpdatedAt = new DateTime(2025, 5, 30, 16, 10, 20, 46, DateTimeKind.Utc).AddTicks(2998),
+                            UserName = "admin"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>

@@ -1,5 +1,4 @@
-﻿using Domain.Entity;
-using Domain.Interfaces.Repositories;
+﻿using Domain.Interfaces.Repositories;
 using Domain.Interfaces;
 using Infrastructure.Data;
 using System;
