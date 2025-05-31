@@ -13,6 +13,8 @@ namespace Domain.Entity
         public string Topic { get; set; } // Food, Travel, Business
         public string Level { get; set; } // A1-B2
 
-        public ICollection<VocabularySet> VocabularySets { get; set; }
+        public ICollection<VocabularySet> VocabularySets { get; set; } = new List<VocabularySet>();
+        public ICollection<VocabularySetItem> VocabularySetItems { get; set; } = new List<VocabularySetItem>();
+
     }
 }

@@ -17,12 +17,9 @@ namespace Domain.Entity
         public string Description { get; set; }
         public string Outcomes { get; set; } // "Học xong bạn có thể..."
 
-        public ICollection<LearnModule> LearnModules { get; set; }
+        public ICollection<LearnModule> LearnModules { get; set; } = new List<LearnModule>();
 
-        public LearningPath()
-        {
-            LearnModules = new List<LearnModule>();
-        }
+
 
     }
 }

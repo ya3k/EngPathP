@@ -1,4 +1,5 @@
-﻿using Domain.Identity;
+﻿using Domain.Entity;
+using Domain.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -11,13 +12,32 @@ namespace Infrastructure.Data
         {
 
         }
-
         public EPDbContext() { }
+
+        //learning path
+        public DbSet<LearningPath> learningPaths { get; set; }
+        public DbSet<LearnModule> learnModules { get; set; }
+        public DbSet<Lesson> Lessons { get; set; }
+
+        //content
+        public DbSet<Vocabulary> Vocabularies { get; set; }
+        public DbSet<Exercise> Exercises { get; set; }
+        public DbSet<VocabularySet> VocabularySets { get; set; }
+        public DbSet<VocabularySetItem> VocabularySetItems { get; set; }
+        public DbSet<GrammarTopic> GrammarTopics { get; set; }
+
+        //user process
+        public DbSet<UserProgress> UserProgresses { get; set; }
+        public DbSet<UserVocabulary> UserVocabularies { get; set; }
+        public DbSet<UserLearningPath> UserLearningPaths { get; set; }
+
+
 
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+
             base.OnModelCreating(modelBuilder);
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(EPDbContext).Assembly);
 
@@ -42,7 +62,7 @@ namespace Infrastructure.Data
             modelBuilder.Entity<ApplicationUser>().HasData(
                new ApplicationUser
                {
-                   Id = Guid.Parse("e4eaaaf2-d142-11e1-b3e4-080027620cdd"), 
+                   Id = Guid.Parse("e4eaaaf2-d142-11e1-b3e4-080027620cdd"),
                    UserName = "admin",
                    NormalizedUserName = "ADMIN",
                    Email = "van23@example.com",
@@ -56,7 +76,20 @@ namespace Infrastructure.Data
                    UpdatedAt = DateTime.UtcNow
                }
             );
-           
+
+            modelBuilder.Entity<VocabularySetItem>()
+      .HasKey(vsi => new { vsi.VocabularySetId, vsi.VocabularyId });
+
+            modelBuilder.Entity<VocabularySetItem>()
+                .HasOne(vsi => vsi.Vocabulary)
+                .WithMany(v => v.VocabularySetItems)
+                .HasForeignKey(vsi => vsi.VocabularyId);
+
+            modelBuilder.Entity<VocabularySetItem>()
+                .HasOne(vsi => vsi.VocabularySet)
+                .WithMany(vs => vs.VocabularySetItems)
+                .HasForeignKey(vsi => vsi.VocabularySetId);
+
         }
 
         protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)

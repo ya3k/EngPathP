@@ -7,7 +7,7 @@ namespace Domain.Entity
     {
         public string Question { get; set; }
         public ExerciseType Type { get; set; }
-        public string Options { get; set; } // JSON array for multiple choice
+        public string OptionsJSON { get; set; } // JSON array for multiple choice
         public string CorrectAnswer { get; set; }
         public string Explanation { get; set; }
         public int Difficulty { get; set; } // 1-5                                          // Thêm thông tin chấm điểm

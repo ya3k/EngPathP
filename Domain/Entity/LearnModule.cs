@@ -13,6 +13,6 @@ namespace Domain.Entity
         public Guid LearningPathId { get; set; }
         public LearningPath LearningPath { get; set; }
 
-        public ICollection<Lesson> Lessons { get; set; }
+        public ICollection<Lesson> Lessons { get; set; } = new List<Lesson>();
     }
 }
