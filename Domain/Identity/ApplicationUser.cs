@@ -11,8 +11,6 @@ namespace Domain.Identity
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
-        public ICollection<UserLearningPath> LearningPaths { get; set; }
-        public ICollection<UserProgress> Progresses { get; set; }
-        public ICollection<UserVocabulary> Vocabularies { get; set; }
+      
     }
 }

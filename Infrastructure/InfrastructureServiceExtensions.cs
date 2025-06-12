@@ -50,8 +50,8 @@ namespace Infrastructure
 
             services.AddTransient<IJwtService, JwtService>();
             services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<ICurrentUser, CurrentUserService>();
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             // authorization policies

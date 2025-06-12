@@ -1,11 +1,6 @@
 ﻿using Domain.Interfaces.Repositories;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Infrastructure.Repositories
 {
@@ -17,37 +12,46 @@ namespace Infrastructure.Repositories
         public GenericRepository(DbContext context)
         {
             _context = context;
-            _dbSet = context.Set<T>();
+            _dbSet = _context.Set<T>();
         }
 
-        public async Task<T?> GetByIdAsync(Guid id) => await _dbSet.FindAsync(id);
+        protected IQueryable<T> GetQueryable() => _dbSet.AsQueryable();
 
-        public async Task<IEnumerable<T>> GetAllAsync() => await _dbSet.ToListAsync();
+        public virtual async Task<T?> GetByIdAsync(Guid id)
+        {
+            return await _dbSet.FindAsync(id);
+        }
 
-        public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate) =>
-            await _dbSet.Where(predicate).ToListAsync();
+        public virtual async Task<IEnumerable<T>> GetAllAsync()
+        {
+            return await GetQueryable().ToListAsync();
+        }
 
-        public async Task AddAsync(T entity) => await _dbSet.AddAsync(entity);
+        public virtual async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate)
+        {
+            return await GetQueryable().Where(predicate).ToListAsync();
+        }
 
-        public void Update(T entity) => _dbSet.Update(entity);
+        public virtual async Task AddAsync(T entity)
+        {
+            await _dbSet.AddAsync(entity);
+        }
 
-        public void Remove(T entity) => _dbSet.Remove(entity);
-
-        public async Task AddRangeAsync(IEnumerable<T> entities)
+        public virtual async Task AddRangeAsync(IEnumerable<T> entities)
         {
             await _dbSet.AddRangeAsync(entities);
         }
 
-        public Task UpdateAsync(T entity)
+        public virtual void Update(T entity)
         {
             _dbSet.Update(entity);
-            return Task.CompletedTask;
         }
 
-        public Task RemoveAsync(T entity)
+        public virtual void Remove(T entity)
         {
             _dbSet.Remove(entity);
-            return Task.CompletedTask;
         }
+
+     
     }
 }

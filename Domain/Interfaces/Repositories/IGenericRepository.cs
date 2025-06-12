@@ -16,7 +16,7 @@ namespace Domain.Interfaces.Repositories
         Task AddAsync(T entity);
         Task AddRangeAsync(IEnumerable<T> entities);
 
-        Task UpdateAsync(T entity); // đổi sang async để dễ quản lý logic sau này
-        Task RemoveAsync(T entity);
+        void Update(T entity); // đổi sang async để dễ quản lý logic sau này
+        void Remove(T entity);
     }
 }
