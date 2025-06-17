@@ -1,4 +1,5 @@
-﻿using Domain.Identity;
+﻿using Domain.Entity;
+using Domain.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +13,9 @@ namespace Infrastructure.Data
 
         }
         public EPDbContext() { }
+
+        public DbSet<FcmDeviceTokens> FcmDeviceTokens { get; set; }
+        public DbSet<FcmNotification> FcmNotifications { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -55,7 +59,7 @@ namespace Infrastructure.Data
                }
             );
 
-     
+
 
         }
 

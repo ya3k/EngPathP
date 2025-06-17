@@ -4,6 +4,8 @@ using Domain.Constants;
 using Domain.Identity;
 using Domain.Interfaces;
 using Domain.Interfaces.Repositories;
+using Hangfire;
+using Hangfire.SqlServer;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
 using Infrastructure.Services;
@@ -49,13 +51,23 @@ namespace Infrastructure
 
 
             services.AddTransient<IJwtService, JwtService>();
+            services.AddTransient<IFcmService, FcmService>();
+
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<ICurrentUser, CurrentUserService>();
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-            // authorization policies
+            //hangfire
+            services.AddHangfire(config =>
+           config.SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+          .UseSimpleAssemblyNameTypeSerializer()
+          .UseRecommendedSerializerSettings()
+          .UseSqlServerStorage(configuration.GetConnectionString("DefaultConnection")));
 
+            services.AddHangfireServer();
+
+            // authorization policies
             services.AddAuthentication(item =>
             {
                 item.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
