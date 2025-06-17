@@ -111,3 +111,4 @@ FodyWeavers.xsd
 
 # Ignore migration folder
 # Migrations/
+/Api/firebase-adminsdk.json
