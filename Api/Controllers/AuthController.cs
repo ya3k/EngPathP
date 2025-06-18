@@ -2,6 +2,9 @@
 using Api.Dto;
 using Application.DTOs;
 using Application.ServiceContracts.Auth;
+using Domain.Identity;
+using Domain.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,10 +15,13 @@ namespace Api.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
+        private readonly ICurrentUser _currentUser;
 
-        public AuthController(IAuthService authService)
+
+        public AuthController(IAuthService authService, ICurrentUser currentUser)
         {
             _authService = authService;
+            _currentUser = currentUser;
         }
 
         [HttpPost("register")]
@@ -95,6 +101,36 @@ namespace Api.Controllers
                 return Unauthorized(new ApiResponse<object>(false, "Logout failed or token invalid."));
 
             return Ok(new ApiResponse<object>(true, "Successfully logged out."));
+        }
+
+
+        [HttpGet("me")]
+        [Authorize]
+        public async Task<IActionResult> GetCurrentUser()
+        {
+
+            var userId = await _currentUser.GetCurrentUserIdAsync();
+            if (userId == Guid.Empty)
+            {
+                return Unauthorized(new ApiResponse<object>(false, "User not found."));
+            }
+            var userDetails = await _currentUser.GetCurrentUserAsync();
+            if (userDetails == null)
+            {
+                return NotFound(new ApiResponse<object>(false, "User details not found."));
+            }
+
+            var userDto = new UserDto
+            {
+                Id = userDetails.Id,
+                UserName = userDetails.UserName,
+                Email = userDetails.Email,
+                PersonName = userDetails.PersonName,
+                IsActive = userDetails.IsActive,
+            };
+            return Ok(new ApiResponse<object>(true, "User details retrieved successfully.", userDto));
+
+
         }
     }
 }

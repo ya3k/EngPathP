@@ -52,6 +52,14 @@ namespace Api
             });            //add infrastructure services
             builder.Services.AddInfrastructureServices(builder.Configuration);
 
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAllOrigins",
+                    builder => builder.AllowAnyOrigin()
+                                      .AllowAnyMethod()
+                                      .AllowAnyHeader());
+            });
+
 
 
             var app = builder.Build();
@@ -67,6 +75,8 @@ namespace Api
             //hangfire dashboard and server
             app.UseHangfireDashboard();
 
+            //cors
+            app.UseCors("AllowAllOrigins");
 
             app.UseHttpsRedirection();
             app.UseAuthentication();

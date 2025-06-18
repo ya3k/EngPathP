@@ -59,6 +59,10 @@ namespace Infrastructure
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
+
+            //http context accessor
+            services.AddHttpContextAccessor();
+
             //hangfire
             services.AddHangfire(config =>
       config.SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
