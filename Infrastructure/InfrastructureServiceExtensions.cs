@@ -5,6 +5,7 @@ using Domain.Identity;
 using Domain.Interfaces;
 using Domain.Interfaces.Repositories;
 using Hangfire;
+using Hangfire.PostgreSql;
 using Hangfire.SqlServer;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
@@ -30,7 +31,7 @@ namespace Infrastructure
             var connectionString = configuration.GetConnectionString("DefaultConnection");
 
             services.AddDbContext<EPDbContext>(options =>
-                options.UseSqlServer(connectionString, b => b.MigrationsAssembly("Infrastructure")));
+                options.UseNpgsql(connectionString, b => b.MigrationsAssembly("Infrastructure")));
 
 
             services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
@@ -60,10 +61,10 @@ namespace Infrastructure
 
             //hangfire
             services.AddHangfire(config =>
-           config.SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+      config.SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
           .UseSimpleAssemblyNameTypeSerializer()
           .UseRecommendedSerializerSettings()
-          .UseSqlServerStorage(configuration.GetConnectionString("DefaultConnection")));
+          .UsePostgreSqlStorage(connectionString));
 
             services.AddHangfireServer();
 

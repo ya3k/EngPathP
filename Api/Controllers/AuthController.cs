@@ -1,4 +1,6 @@
-﻿using Application.DTOs;
+﻿using Api.ApiResDto;
+using Api.Dto;
+using Application.DTOs;
 using Application.ServiceContracts.Auth;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -21,14 +23,14 @@ namespace Api.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return BadRequest(new ApiResponse<object>(false, "Invalid registration data.", ModelState));
             }
             var result = await _authService.RegisterAsync(registerDTO);
             if (result)
             {
-                return Ok();
+                return Ok(new ApiResponse<object>(true, "Registration successful."));
             }
-            return BadRequest("Registration failed");
+            return BadRequest(new ApiResponse<object>(false, "Registration failed"));
         }
 
         [HttpPost("login")]
@@ -36,14 +38,14 @@ namespace Api.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return BadRequest(new ApiResponse<object>(false, "Invalid login data.", ModelState));
             }
             var result = await _authService.LoginAsync(loginDTO);
             if (result != null)
             {
-                return Ok(result);
+                return Ok(new ApiResponse<object>(true, "Login successful.", result));
             }
-            return Unauthorized("Invalid credentials");
+            return Unauthorized(new ApiResponse<object>(false, "Invalid credentials"));
         }
 
         [HttpPost("refresh-token")]
@@ -51,14 +53,14 @@ namespace Api.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return BadRequest(new ApiResponse<object>(false, "Invalid token data.", ModelState));
             }
             var result = await _authService.RefreshTokenAsync(tokenModel);
             if (result != null)
             {
-                return Ok(result);
+                return Ok(new ApiResponse<object>(true, "Token refreshed successfully.", result));
             }
-            return Unauthorized("Invalid token");
+            return Unauthorized(new ApiResponse<object>(false, "Invalid token"));
         }
 
         [HttpPost("validate-token")]
@@ -66,14 +68,14 @@ namespace Api.Controllers
         {
             if (string.IsNullOrEmpty(token))
             {
-                return BadRequest("Token is required");
+                return BadRequest(new ApiResponse<object>(false, "Token is required"));
             }
             var isValid = await _authService.ValidateToken(token);
             if (isValid)
             {
-                return Ok("Token is valid");
+                return Ok(new ApiResponse<object>(true, "Token is valid"));
             }
-            return Unauthorized("Invalid token");
+            return Unauthorized(new ApiResponse<object>(false, "Invalid token"));
         }
 
         //logout
@@ -83,18 +85,16 @@ namespace Api.Controllers
             var authHeader = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
             if (string.IsNullOrWhiteSpace(authHeader) || !authHeader.StartsWith("Bearer "))
             {
-                return Unauthorized(new { error = "Missing or invalid Authorization header." });
+                return Unauthorized(new ApiResponse<object>(false, "Missing or invalid Authorization header."));
             }
 
             var token = authHeader.Substring("Bearer ".Length).Trim();
 
             var result = await _authService.RevokeToken(token);
             if (!result)
-                return Unauthorized(new { error = "Logout failed or token invalid." });
+                return Unauthorized(new ApiResponse<object>(false, "Logout failed or token invalid."));
 
-            return Ok(new { message = "Successfully logged out." });
+            return Ok(new ApiResponse<object>(true, "Successfully logged out."));
         }
-
-
     }
 }

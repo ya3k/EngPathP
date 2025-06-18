@@ -46,6 +46,7 @@ namespace Infrastructure.Data
                {
                    Id = Guid.Parse("e4eaaaf2-d142-11e1-b3e4-080027620cdd"),
                    UserName = "admin",
+                   PersonName = "Admin User",
                    NormalizedUserName = "ADMIN",
                    Email = "van23@example.com",
                    NormalizedEmail = "VAN23@EXAMPLE.COM",
@@ -59,6 +60,14 @@ namespace Infrastructure.Data
                }
             );
 
+            //seed user role
+            modelBuilder.Entity<IdentityUserRole<Guid>>().HasData(
+                new IdentityUserRole<Guid>
+                {
+                    UserId = Guid.Parse("e4eaaaf2-d142-11e1-b3e4-080027620cdd"),
+                    RoleId = Guid.Parse("11111111-1111-1111-1111-111111111111") // Admin role
+                }
+            );
 
 
         }

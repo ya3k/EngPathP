@@ -1,4 +1,5 @@
-﻿using Api.Dto;
+﻿using Api.ApiResDto;
+using Api.Dto;
 using Application.ServiceContracts;
 using Domain.Entity;
 using Domain.Identity;
@@ -26,23 +27,20 @@ namespace Api.Controllers
             _currentUser = currentUser;
         }
 
-        
-      
-
         //save device token
         [HttpPost("device-token")]
         public async Task<IActionResult> SaveDeviceToken([FromBody] SaveTokenRequest saveTokenRequest)
         {
             if (string.IsNullOrEmpty(saveTokenRequest.DeviceToken))
             {
-                return BadRequest("Device token cannot be null or empty.");
+                return BadRequest(new ApiResponse<object>(false, "Device token cannot be null or empty."));
             }
             try
             {
                 var existingToken = await _unitOfWork.Repository<FcmDeviceTokens>().FindAsync(t => t.DeviceToken == saveTokenRequest.DeviceToken);
                 if (existingToken.Any())
                 {
-                    return BadRequest("Device token already exists.");
+                    return BadRequest(new ApiResponse<object>(false, "Device token already exists."));
                 }
                 var userId = await _currentUser.GetCurrentUserIdAsync();
 
@@ -50,17 +48,17 @@ namespace Api.Controllers
                 {
                     UserId = userId,
                     DeviceToken = saveTokenRequest.DeviceToken,
-                    DeviceType = saveTokenRequest.DeviceType, 
+                    DeviceType = saveTokenRequest.DeviceType,
                     IsActive = true,
                 };
 
                 await _unitOfWork.Repository<FcmDeviceTokens>().AddAsync(newToken);
                 await _unitOfWork.SaveChangesAsync();
-                return Ok("Device token saved successfully.");
+                return Ok(new ApiResponse<object>(true, "Device token saved successfully."));
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, $"Error saving device token: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<object>(false, $"Error saving device token: {ex.Message}"));
             }
         }
 
@@ -71,7 +69,7 @@ namespace Api.Controllers
             var notificationRepo = _unitOfWork.Repository<FcmNotification>();
             if (string.IsNullOrEmpty(request.Title) || string.IsNullOrEmpty(request.Body))
             {
-                return BadRequest("Title and body cannot be null or empty.");
+                return BadRequest(new ApiResponse<object>(false, "Title and body cannot be null or empty."));
             }
             try
             {
@@ -85,13 +83,12 @@ namespace Api.Controllers
 
                 await notificationRepo.AddAsync(notification);
                 await _unitOfWork.SaveChangesAsync();
-                return Ok("Notification sent successfully.");
+                return Ok(new ApiResponse<object>(true, "Notification sent successfully."));
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, $"Error sending notification: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<object>(false, $"Error sending notification: {ex.Message}"));
             }
         }
-
     }
 }
