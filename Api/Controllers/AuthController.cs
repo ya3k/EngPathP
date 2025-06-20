@@ -54,6 +54,7 @@ namespace Api.Controllers
             return Unauthorized(new ApiResponse<object>(false, "Invalid credentials"));
         }
 
+        [Authorize]
         [HttpPost("refresh-token")]
         public async Task<IActionResult> RefreshToken([FromBody] TokenModel tokenModel)
         {
@@ -69,6 +70,7 @@ namespace Api.Controllers
             return Unauthorized(new ApiResponse<object>(false, "Invalid token"));
         }
 
+        [Authorize]
         [HttpPost("validate-token")]
         public async Task<IActionResult> ValidateToken([FromBody] string token)
         {
@@ -85,6 +87,7 @@ namespace Api.Controllers
         }
 
         //logout
+        [Authorize]
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
         {

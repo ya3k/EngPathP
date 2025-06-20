@@ -37,12 +37,13 @@ namespace Api.Controllers
             }
             try
             {
-                var existingToken = await _unitOfWork.Repository<FcmDeviceTokens>().FindAsync(t => t.DeviceToken == saveTokenRequest.DeviceToken);
+                var userId = await _currentUser.GetCurrentUserIdAsync();
+
+                var existingToken = await _unitOfWork.Repository<FcmDeviceTokens>().FindAsync(t => t.DeviceToken == saveTokenRequest.DeviceToken && t.UserId == userId);
                 if (existingToken.Any())
                 {
-                    return BadRequest(new ApiResponse<object>(false, "Device token already exists."));
+                    return BadRequest(new ApiResponse<object>(false, "Device token and user already exists."));
                 }
-                var userId = await _currentUser.GetCurrentUserIdAsync();
 
                 var newToken = new FcmDeviceTokens
                 {

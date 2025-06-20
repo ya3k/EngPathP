@@ -2,6 +2,7 @@
 using Application.ServiceContracts;
 using Application.ServiceContracts.Auth;
 using Domain.Identity;
+using Domain.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 
@@ -11,15 +12,16 @@ namespace Infrastructure.Services
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IJwtService _jwtService;
-
+        private readonly ICurrentUser _currentUser;
         private const string TOKEN_PROVIDER = "MyApp";
         private const string REFRESH_TOKEN_NAME = "RefreshToken";
         private const string REFRESH_TOKEN_EXP_NAME = "RefreshTokenExpiration";
 
-        public AuthService(UserManager<ApplicationUser> userManager, IJwtService jwtService)
+        public AuthService(UserManager<ApplicationUser> userManager, IJwtService jwtService, ICurrentUser currentUser)
         {
             _userManager = userManager;
             _jwtService = jwtService;
+            _currentUser = currentUser;
         }
 
         public async Task<bool> RegisterAsync(RegisterDTO registerDTO)
@@ -62,19 +64,11 @@ namespace Infrastructure.Services
             return tokens;
         }
 
+
         public async Task<AuthenticationResponse> RefreshTokenAsync(TokenModel tokenModel)
         {
-            if (tokenModel == null)
-                throw new UnauthorizedAccessException("Invalid request.");
-
-            var principal = await _jwtService.GetPrincipalFromJwtToken(tokenModel.Token);
-
-            if (principal == null)
-                throw new UnauthorizedAccessException("Invalid jwt access token.");
-
-            var email = principal.FindFirstValue(ClaimTypes.Email);
-            var user = await _userManager.FindByEmailAsync(email);
-
+            var userId = await _currentUser.GetCurrentUserIdAsync();
+            var user = await _userManager.FindByIdAsync(userId.ToString());
             if (user == null)
                 throw new UnauthorizedAccessException("User not found.");
 
